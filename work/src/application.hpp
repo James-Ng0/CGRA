@@ -7,6 +7,9 @@
 #include "opengl.hpp"
 #include "cgra/cgra_mesh.hpp"
 #include "skeleton_model.hpp"
+#include "particle.hpp"
+#include "emitter.hpp"
+#include "particle_system.hpp"
 
 
 // Basic model that holds the shader, mesh and transform for drawing.
@@ -47,6 +50,15 @@ private:
 
 	// geometry
 	basic_model scene;
+	ParticleSystem ps;
+
+	//fire parameters
+	float fire_radius = 2.5;
+	float wind_factor = 0.04;
+	float fire_density = 100;
+	float fire_scale = 0.2;
+	float lrg_wind = 0.0;
+	float fire_height = 50.0;
 
 public:
 	// setup
