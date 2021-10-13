@@ -14,6 +14,7 @@ void Emitter::addParticle() {
 	p.scale_f = scale;
 	p.wind = wind;
 	p.lrg_wind = lrg_wind;
+	p.alpha = alpha;
 	//p.startLifespan = fire_height;
 	particles.push_back(p);
 }
@@ -28,6 +29,7 @@ void Emitter::update() {
 	for (int i = 0; i < particles.size(); i++) {
 		Particle &p = particles.at(i);
 		p.update(); 
+		if (p.alpha != alpha) { p.alpha = alpha; }
 		if (p.isDead()) {
 			toRemove.push_back(i);
 		}

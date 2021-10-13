@@ -52,6 +52,19 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	scene.shader = shader;
 	scene.mesh = load_wavefront_data(CGRA_SRCDIR + std::string("\\res\\assets\\scene.obj")).build();
 	scene.color = vec3(0, 1, 0);
+
+	//Fire 
+	sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert_fire.glsl"));
+	sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag_fire.glsl"));
+	GLuint shader_fire = sb.build();
+
+	ps = ParticleSystem(shader_fire);
+
+	//secondary shader for logs 
+	sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert_logs.glsl"));
+	sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag_logs.glsl"));
+	GLuint shader_logs = sb.build();
+	ps.logShader = shader_logs;
 }
 
 
@@ -71,6 +84,10 @@ void Application::render() {
 	// enable flags for normal/forward rendering
 	glEnable(GL_DEPTH_TEST); 
 	glDepthFunc(GL_LESS);
+
+	//enable blending for alpha values
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
 
 	// projection matrix
 	mat4 proj = perspective(1.f, float(width) / height, 0.1f, 1000.f);
@@ -94,6 +111,11 @@ void Application::render() {
 
 	// Draw the scene
 	scene.draw(view,proj);
+
+	//draw fire 
+	ps.parameters(fire_radius, wind_factor, fire_density, fire_scale, lrg_wind, fire_height, alpha);
+	ps.update();
+	ps.draw(view, proj);
 }
 
 
@@ -126,6 +148,14 @@ void Application::renderGUI() {
 	if (ImGui::InputFloat("example input", &exampleInput)) {
 		cout << "example input changed to " << exampleInput << endl;
 	}
+
+	//Fire paremeters
+	ImGui::SliderFloat("Wind factor", &wind_factor, -5, 5, "%.2f");
+	ImGui::SliderFloat("Large wind field", &lrg_wind, -1, 1, "%.2f");
+	ImGui::SliderFloat("Fire density", &fire_density, 10, 125, "%.2f");
+	ImGui::SliderFloat("Particle scale", &fire_scale, 0.01, 0.85, "%.2f");
+	ImGui::SliderFloat("Gravity scalar", &fire_height, 0.5, 5, "%.2f");
+	ImGui::Checkbox("Transparency", &alpha);
 
 	// finish creating window
 	ImGui::End();
