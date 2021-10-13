@@ -17,7 +17,7 @@ struct waveParticle {
 	float rf(float x);
 	float radius = 6;
 	float dispAng;
-	float speed = 1.5;
+	float speed = 0.3;
 };
 
 
@@ -175,7 +175,7 @@ void water_plane::iterate() {
 		vector<waveParticle> wf;
 		for (int a = 0; a < waveFronts[i].size(); a++) {
 			auto part = waveFronts[i][a];
-			part.position += part.direction;
+			part.position += part.direction * part.speed;
 			if (part.position.x < width && part.position.y < width && part.position.x > -width && part.position.y > -width && part.amplitude > threshold) {
 				float stepsize = 2 * width / n;
 				int j = (int)(((part.position.x + width) / (2 * width)) * n);

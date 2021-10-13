@@ -146,7 +146,7 @@ void Application::renderGUI() {
 	ImGui::SameLine();
 	if (ImGui::Button("Screenshot")) rgba_image::screenshot(true);
 	if (ImGui::Button("GenerateWave")) water.randWave();
-	ImGui::SliderFloat("Roughness", &water.roughness, 1, 15, "%.2f");
+	ImGui::SliderFloat("Roughness", &water.roughness, 1, 25, "%.2f");
 	ImGui::Separator();
 
 	// example of how to use input boxes
