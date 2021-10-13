@@ -20,6 +20,13 @@ SET(sources
 	"main.cpp"
 
 	"CMakeLists.txt"
+	"emitter.cpp"
+	"emitter.hpp"
+	"particle.cpp"
+	"particle.hpp"
+	"particle_system.cpp"
+	"particle_system.hpp"
+	"water.hpp"
 )
 
 # Add executable target and link libraries
