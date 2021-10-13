@@ -8,8 +8,9 @@
 Particle::Particle(glm::vec3 l, float ls) {
 	origin = l;
 	location = l;
-	startLifespan = ls;
-	lifespan = ls;
+	height = ls;
+	//startLifespan = ls;
+	//lifespan = ls;
 }
 
 //update particle
@@ -20,12 +21,23 @@ void Particle::update()
 	float N = stb_perlin_noise3(scaledDown.x, scaledDown.y, scaledDown.z); 
 
 	float windL = lrg_wind;
-	float C = 20;
+	float C = height;
 	float windS = dot((location - origin), glm::vec3(-gravity)) * C * N;
 	float k = wind;
 	float deltaV = (k * gravity) + windL + windS;
+	//float deltaV = windS;
 
-	acceleration = glm::vec3(deltaV, gravity, deltaV);
+	glm::vec3 scaledDownZ = location - (glm::vec3(getRandom(0, 1), getRandom(0, 1), getRandom(0, 1)) * lifespan * gravity);
+	float NZ = stb_perlin_noise3(scaledDownZ.x, scaledDownZ.y, scaledDownZ.z);
+
+	float windLZ = lrg_wind;
+	float CZ = C;
+	float windSZ = dot((location - origin), glm::vec3(-gravity)) * CZ * NZ;
+	float kZ = wind;
+	float deltaVZ = (k * gravity) + windLZ + windSZ;
+	//float deltaVZ = N;
+
+	acceleration = glm::vec3(deltaV, gravity, deltaVZ);
 	acceleration = normalize(acceleration);
 	velocity += acceleration;
 	velocity = normalize(velocity);
@@ -44,11 +56,15 @@ void Particle::update()
 void Particle::display(glm::mat4 view, glm::mat4 proj)
 {
 	glm::mat4 translated = translate(view, location);
-	color.a = (lifespan / startLifespan); // opacity
-	emColor.a = color.a;
-	amColor.a = color.a;
-	diffColor.a = color.a;
-	specColor.a = color.a;
+
+	// opacity
+	if (alpha) {
+		color.a = (lifespan / startLifespan); 
+		emColor.a = color.a;
+		amColor.a = color.a;
+		diffColor.a = color.a;
+		specColor.a = color.a;
+	}
 
 	emColor.x = (lifespan / startLifespan);
 	emColor.y = (lifespan / startLifespan) / 2;

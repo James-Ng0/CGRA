@@ -15,29 +15,29 @@ struct waveParticle {
 	float amplitude;
 	float displacement(glm::vec2 x);
 	float rf(float x);
-	float radius = 11;
+	float radius = 3;
 	float dispAng;
-	float speed = 1;
+	float speed = 0.6;
 };
 
 
 struct water_plane {
 	GLuint shader = 0;
 	cgra::gl_mesh mesh;
-	glm::vec3 color{ 0.7 };
+	glm::vec3 wcolor = glm::vec3(0.25, 0.25, 1);
 	glm::mat4 modelTransform{ 1.0 };
 	GLuint texture;
 	std::vector<std::vector<waveParticle>> waveFronts{};
-	float speed;
 	cgra::mesh_builder createSurface();
 	float lastTick = 0;
 	float rate = 0.01;
 	const static int n = 100;
 	float heightMap[n][n] = { 0 };
 	std::vector<waveParticle> cellMap[n][n];
-	float width = 60;
+	float width = 30;
 	float threshold = 0.01;
-
+	float baseHeight = 12;
+	float baseAmp = 0.1 * width;
 	void draw(const glm::mat4& view, const glm::mat4 proj);
 	//Simulates the water at a given time
 	void simulate();
@@ -63,8 +63,8 @@ void water_plane::draw(const glm::mat4& view, const glm::mat4 proj) {
 	glUseProgram(shader); // load shader and variables
 	glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(proj));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(modelview));
-	glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, value_ptr(color));
-
+	glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, value_ptr(wcolor));
+	glUniform1f(glGetUniformLocation(shader, "alpha"), 0.5);
 	mesh.draw(); // draw
 }
 
@@ -186,7 +186,6 @@ void water_plane::iterate() {
 Finds the height of every vertex in the mesh.
 */
 void water_plane::getHMap() {
-	float baseHeight = 0;
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < n; j++) {
 			float stepSize = 2 * width / n;
@@ -254,17 +253,17 @@ vector<waveParticle> water_plane::getAdjacent(vec2 p, int n, int rad) {
 void water_plane::randWave() {
 	float ri = (((float)rand() / RAND_MAX) * (2 * width));
 	float rj = (((float)rand() / RAND_MAX) * (2 * width));
-
+	float stepSize = 2 * width / n;
 	waveParticle p1, p2, p3, p4, p5, p6;
 	vec2 o = vec2(-width, -width);
-	p1.position = o + vec2(ri, rj);
-	p2.position = o + vec2(ri, rj);
-	p3.position = o + vec2(ri, rj);
-	p4.position = o + vec2(ri, rj);
 	p1.direction = normalize(vec2(0, 1));
 	p2.direction = normalize(vec2(1, 0));
 	p3.direction = normalize(vec2(0, -1));
 	p4.direction = normalize(vec2(-1, 0));
+	p1.position = o + vec2(ri, rj) + (p1.direction * stepSize);
+	p2.position = o + vec2(ri, rj) + (p2.direction * stepSize);
+	p3.position = o + vec2(ri, rj) + (p3.direction * stepSize);
+	p4.position = o + vec2(ri, rj) + (p4.direction * stepSize);
 	p1.dispAng = 0;
 	p2.dispAng = 180;
 	p3.dispAng = 90;
@@ -277,7 +276,7 @@ void water_plane::randWave() {
 
 	for (int i = 0; i < wf.size(); i++) {
 		wf[i].origin = wf[i].position;
-		wf[i].amplitude = 20;
+		wf[i].amplitude = baseAmp;
 	}
 
 	waveFronts.push_back(wf);
