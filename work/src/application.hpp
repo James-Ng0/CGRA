@@ -7,9 +7,6 @@
 #include "opengl.hpp"
 #include "cgra/cgra_mesh.hpp"
 #include "skeleton_model.hpp"
-#include "particle.hpp"
-#include "emitter.hpp"
-#include "particle_system.hpp"
 
 
 // Basic model that holds the shader, mesh and transform for drawing.
@@ -18,7 +15,7 @@
 struct basic_model {
 	GLuint shader = 0;
 	cgra::gl_mesh mesh;
-	glm::vec3 color{ 0.7 };
+	glm::vec3 color = glm::vec3(0,0,0);
 	glm::mat4 modelTransform{ 1.0 };
 	GLuint texture;
 
@@ -50,15 +47,6 @@ private:
 
 	// geometry
 	basic_model scene;
-	ParticleSystem ps;
-
-	//fire parameters
-	float fire_radius = 2.5;
-	float wind_factor = 0.04;
-	float fire_density = 100;
-	float fire_scale = 0.2;
-	float lrg_wind = 0.0;
-	float fire_height = 50.0;
 
 public:
 	// setup

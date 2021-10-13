@@ -16,6 +16,7 @@
 #include "cgra/cgra_image.hpp"
 #include "cgra/cgra_shader.hpp"
 #include "cgra/cgra_wavefront.hpp"
+#include "water.hpp"
 
 using namespace std;
 using namespace cgra;
@@ -26,45 +27,31 @@ using namespace glm;
 
 void basic_model::draw(const glm::mat4& view, const glm::mat4 proj) {
 	mat4 modelview = view * modelTransform;
-	modelview = scale(modelview, vec3(5));
+	modelview = scale(modelview, vec3(30));
 	glUseProgram(shader); // load shader and variables
 	glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(proj));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(modelview));
 	glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, value_ptr(color));
-
+	glUniform1f(glGetUniformLocation(shader, "alpha"), 1);
 	mesh.draw(); // draw
 }
 
 Application::Application(GLFWwindow *window) : m_window(window) {
 	
 	shader_builder sb;
-    sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
-	sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
+    sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//N_vert.glsl"));
+	sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//N_frag.glsl"));
 	GLuint shader = sb.build();
 
 
 	//Handles the water. All other water code is contained within water.h
-	//water.shader = shader;
-	//water.mesh = water.createSurface().build();
-	//water.color = vec3(0.25, 0.25, 1);
+	water.shader = shader;
+	water.mesh = water.createSurface().build();
 
 	//Scene
 	scene.shader = shader;
 	scene.mesh = load_wavefront_data(CGRA_SRCDIR + std::string("\\res\\assets\\scene.obj")).build();
 	scene.color = vec3(0, 1, 0);
-
-	//Fire 
-	sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert_fire.glsl"));
-	sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag_fire.glsl"));
-	GLuint shader_fire = sb.build();
-	
-	ps = ParticleSystem(shader_fire);
-
-	//secondary shader for logs 
-	sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert_logs.glsl"));
-	sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag_logs.glsl"));
-	GLuint shader_logs = sb.build();
-	ps.logShader = shader_logs;
 }
 
 
@@ -85,10 +72,6 @@ void Application::render() {
 	glEnable(GL_DEPTH_TEST); 
 	glDepthFunc(GL_LESS);
 
-	//enable blending for alpha values
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-
 	// projection matrix
 	mat4 proj = perspective(1.f, float(width) / height, 0.1f, 1000.f);
 
@@ -105,17 +88,12 @@ void Application::render() {
 
 
 	// draw the model
-	//water.simulate();
-	//water.draw(view, proj);
+	water.simulate();
+	water.draw(view, proj);
 	//water.visualize(view, proj);
 
 	// Draw the scene
 	scene.draw(view,proj);
-
-	//draw fire 
-	ps.parameters(fire_radius, wind_factor, fire_density, fire_scale, lrg_wind, fire_height);
-	ps.update();
-	ps.draw(view, proj);
 }
 
 
@@ -139,7 +117,7 @@ void Application::renderGUI() {
 	ImGui::Checkbox("Wireframe", &m_showWireframe);
 	ImGui::SameLine();
 	if (ImGui::Button("Screenshot")) rgba_image::screenshot(true);
-	//if (ImGui::Button("GenerateWave")) water.randWave();
+	if (ImGui::Button("GenerateWave")) water.randWave();
 	
 	ImGui::Separator();
 
@@ -148,14 +126,6 @@ void Application::renderGUI() {
 	if (ImGui::InputFloat("example input", &exampleInput)) {
 		cout << "example input changed to " << exampleInput << endl;
 	}
-
-	//Fire paremeters
-	ImGui::SliderFloat("Fire radius", &fire_radius, 1, 10, "%.2f");
-	ImGui::SliderFloat("Wind factor", &wind_factor, -5, 5, "%.2f");
-	ImGui::SliderFloat("Large wind field", &lrg_wind, -1, 1, "%.2f");
-	ImGui::SliderFloat("Fire density", &fire_density, 10, 125, "%.2f");
-	ImGui::SliderFloat("Particle scale", &fire_scale, 0.01, 1.0, "%.2f");
-	ImGui::SliderFloat("Fire height", &fire_height, 2, 100, "%.2f");
 
 	// finish creating window
 	ImGui::End();
